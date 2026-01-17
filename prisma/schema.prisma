@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+enum LoanStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(STAFF)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  auditLogs AuditLog[]
+}
+
+model Customer {
+  id                 String   @id @default(uuid())
+  name               String
+  email              String   @unique
+  phone              String
+  aadharImageUrl     String?
+  panImageUrl        String?
+  bankDetailsImageUrl String?
+  checkbookImageUrl  String?
+  loans              Loan[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Loan {
+  id               String          @id @default(uuid())
+  customerId       String
+  customer         Customer        @relation(fields: [customerId], references: [id])
+  amount           Float
+  interestRate     Float
+  term             Int
+  startDate        DateTime
+  endDate          DateTime?
+  emiFrequency     String
+  totalAmount      Float?
+  dailyPayment     Float?
+  status           LoanStatus      @default(PENDING)
+  payments         Payment[]
+  loanAgreementUrl String?
+  supportingImages SupportingImage[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model SupportingImage {
+  id     String @id @default(uuid())
+  loanId String
+  loan   Loan   @relation(fields: [loanId], references: [id])
+  url    String
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  loanId    String
+  loan      Loan     @relation(fields: [loanId], references: [id])
+  amount    Float
+  date      DateTime
+  status    String
+  method    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
