@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@/src/generated/client";
+import { Prisma } from "@/lib/generated/prisma/client";
+
 
 export async function GET() {
   try {
